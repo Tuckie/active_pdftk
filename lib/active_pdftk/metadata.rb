@@ -1,4 +1,5 @@
 require 'date'
+require 'ostruct'
 
 # a module that handles the parsing of pdftk's dump_dat
 #
@@ -36,6 +37,10 @@ module ActivePdftk
       parse_date self["CreationDate"]
     end
 
+    def bookmarks
+      self["bookmarks"]
+    end
+
     private 
 
       def parse_date raw
@@ -67,6 +72,9 @@ module ActivePdftk
       lines = raw_data.read.split("\n")
       meta_data = MetaData.new
       new_key = nil
+      new_bookmark_title = ""
+      new_bookmark_level = 0
+      meta_data["bookmarks"] = []
       lines.each do |line|
         key, value = line.split(": ")
         case key
@@ -76,13 +84,18 @@ module ActivePdftk
             new_key = value
           when "InfoValue"
             meta_data[new_key] = value
+          when "BookmarkTitle"
+            new_bookmark_title = value
+          when "BookmarkLevel"
+            new_bookmark_level = value.to_i
+          when "BookmarkPageNumber"
+            new_bookmark_page_number = value.to_i
+            meta_data["bookmarks"].push(OpenStruct.new(level: new_bookmark_level, title: new_bookmark_title, page: new_bookmark_page_number))
           else 
             meta_data[key] = value unless value.nil?
         end 
       end
       meta_data
     end
-
-  end
 
 end
