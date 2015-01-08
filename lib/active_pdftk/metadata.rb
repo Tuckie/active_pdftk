@@ -97,5 +97,5 @@ module ActivePdftk
       end
       meta_data
     end
-
+  end
 end
